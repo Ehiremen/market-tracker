@@ -1,0 +1,19 @@
+{
+  "name": "market-tracker",
+  "version": "1.0.0",
+  "description": "react app that helps monitor a user's robinhood portfolio; can provide notifications for user-specified market changes",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Ehiremen/market-tracker.git"
+  },
+  "author": "Ehiremen Ekore",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Ehiremen/market-tracker/issues"
+  },
+  "homepage": "https://github.com/Ehiremen/market-tracker#readme"
+}
