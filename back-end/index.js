@@ -110,17 +110,9 @@ const baseAddress = 'https://www.alphavantage.co/query?';
 
 async function loopingFunction() {
     console.log('looping');
-    // const data = app.get('/');
 
     let data = await Query.find({isCompleted: false});
     console.log(data);
-    // ignore completed data points
-    // for (let i=data.length-1; i>=0; i--) {
-    //     const temp = data[i];
-    //     if(temp.isCompleted) {
-    //         data.splice(i, 1);
-    //     }
-    // }
 
     // check each one
     for (let i=0; i<data.length; i++) {
@@ -130,36 +122,54 @@ async function loopingFunction() {
         if (data[i].isCrypto) {
             httpRequestAddress = baseAddress + 'function=CURRENCY_EXCHANGE_RATE&from_currency=' + data[i].symbol + '&to_currency=USD&apikey=' +
                 process.env.ALPHA_VANTAGE_API_KEY;
-            console.log(httpRequestAddress);
+            console.log('query: ', httpRequestAddress);
             console.log();
 
             const alphaApiData = await axios.get(httpRequestAddress).then((response) => {
-                console.log('crypto data');
-                // console.log(response.data);
+                console.log('crypto data received');
                 currentPrice = response.data['Realtime Currency Exchange Rate']['5. Exchange Rate'];
             });
         }
         else {
             httpRequestAddress = baseAddress + 'function=GLOBAL_QUOTE&symbol=' + data[i].symbol + '&apikey=' + process.env.ALPHA_VANTAGE_API_KEY;
+            console.log('query: ', httpRequestAddress);
+            console.log();
+
             const alphaApiData = await axios.get(httpRequestAddress).then((response) => {
-                console.log('stock data');
-                // console.log(response.data);
+                console.log('stock data received');
                 currentPrice = response.data['Global Quote']['05. price'];
             });
         }
 
-        const targetMinusCurrentPrice = (data[i].targetValue/100) - currentPrice;
-        if ((data[i].notifyIfBelow && targetMinusCurrentPrice<0) || (!data[i].notifyIfBelow && targetMinusCurrentPrice>=0)) {
+        const currentMinusTargetPrice = currentPrice - (data[i].targetValue/100);
+        if ((data[i].notifyIfBelow && currentMinusTargetPrice<0) || (!(data[i].notifyIfBelow) && currentMinusTargetPrice>=0)) {
             console.log('sendingAlert');
             await sendAlert(data[i], currentPrice);
+
+            const updatedData = data[i];
+            updatedData.isCompleted = true;
+
+            // using delete + create because updateOne is bugging out
+            await Query.deleteOne(data[i]);
+            await Query.create(updatedData);
+
+
+            // await Query.updateOne(data[i], {$set: {'isCompleted': true}}, function(err, res) {
+            //    if (err) {
+            //        console.log('unable to update data for: ', data[i]);
+            //    }
+            //    else {
+            //        console.log('records updated');
+            //    }
+            // });
         }
 
     }
 }
 
 function run () {
+    setInterval(loopingFunction, 6000);
     // setInterval(loopingFunction, 60000);
-    setInterval(loopingFunction, 5000);
 }
 
 
