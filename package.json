@@ -15,5 +15,11 @@
   "bugs": {
     "url": "https://github.com/Ehiremen/market-tracker/issues"
   },
-  "homepage": "https://github.com/Ehiremen/market-tracker#readme"
+  "homepage": "https://github.com/Ehiremen/market-tracker#readme",
+  "devDependencies": {
+    "twilio": "^3.60.0"
+  },
+  "dependencies": {
+    "mongoose": "^5.12.4"
+  }
 }
