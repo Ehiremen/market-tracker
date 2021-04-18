@@ -18,3 +18,5 @@ single-page react app that allows users request to be notified about specific ch
 - __frontend:__ run "npm start" from "front-end" directory (NOTE: runs on __localhost:3000__)
 
 Done for and during the 2021 UofIowa Hackathon
+
+[app demo](https://youtu.be/SxEvXNFaZf8)
