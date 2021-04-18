@@ -13,10 +13,22 @@ single-page react app that allows users request to be notified about specific ch
 - twilio api (sms notifications)
 - alphaVantage api (market data)
 
+[app demo](https://youtu.be/SxEvXNFaZf8)
+
 ### to deploy:
 - __backend:__ run "npm start from root directory. (NOTE: runs on __localhost:5000__)
 - __frontend:__ run "npm start" from "front-end" directory (NOTE: runs on __localhost:3000__)
 
-Done for and during the 2021 UofIowa Hackathon
+#### NOTE:
+Need to create a '.env' file in the root directory to run the backend locally. Add the following lines (no quotes, and no leading '-') to the .env:
+- TWILIO_ACCOUNT_SID=your_twilio_sid
+- TWILIO_AUTH_TOKEN=your_twilio_token
+- TWILIO_PHONE_NUMBER=your_twilio_phone_num
+- ALPHA_VANTAGE_API_KEY=your_alpha_vantage_key
+- ALPHA_VANTAGE_DATA_TYPE=json
 
-[app demo](https://youtu.be/SxEvXNFaZf8)
+Also NOTE:
+    Twilio free tier users can only send sms notifications to verified numbers (i.e. you will need to recieve a verification code on that number first and approve it). Because of this, you can't sms just anyone.
+
+
+# Done for and during the 2021 UofIowa Hackathon
