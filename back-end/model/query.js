@@ -30,13 +30,14 @@ const QuerySchema = new Schema(
         },
 
         isCompleted: {
-            type: String,
+            type: Boolean,
             required: true
         },
 
         toCurrency: {
             type: String,
-            required: false
+            required: true
+        //    default = USD
         }
     }
 );

@@ -73,7 +73,7 @@ export function HomePage() {
 
     const classes = useStyles();
 
-    const defaultAlert = {symbol: '', isCrypto: false, notifyIfBelow: true, price: ""};
+    const defaultAlert = {symbol: '', isCrypto: false, notifyIfBelow: true, price: 0};
     const [phoneNumber, setPhoneNumber] = React.useState("");
     const [requestedAlerts, setRequestedAlert] = React.useState([defaultAlert]);
 
@@ -89,7 +89,7 @@ export function HomePage() {
 
     function handleAddAlert() {
         const values = [...requestedAlerts];
-        values.push({ symbol: '', isCrypto: false, notifyIfBelow: true, price: "" });
+        values.push(defaultAlert);
         setRequestedAlert(values);
     }
 
@@ -124,40 +124,79 @@ export function HomePage() {
         values[index].symbol = event.target.value.toUpperCase();
         setRequestedAlert(values);
     }
-    async function handleSubmitButton() {
+
+    function validateFields(req) {
+       if (req.symbol == '' || req.price <= 0) return false;
+        return true;
+    }
+
+
+    function handleSubmitButton() {
 
         console.log(phoneNumber);
+
+        if ( phoneNumber == '' || phoneNumber.length < 10 ) {
+            alert('Invalid phone number');
+            return;
+        }
+
         console.log(requestedAlerts);
 
         // async/await version
-        requestedAlerts.map(async (req) => {
-            try {
-                const res = await axios.post('/query', {
-                    symbol: req.symbol,
-                    isCrypto: req.isCrypto,
-                    notifyAt: phoneNumber,
-                    targetValue: req.price,
-                    notifyIfBelow: req.notifyIfBelow,
-                    isCompleted: false,
-                    toCurrency: "USD"
-                });
-
-                console.log('Query added!');
-                console.log(res.data);
-
-            } catch (err) {
-
-                console.error(err);
-
+        requestedAlerts.map( (req) => {
+            if (validateFields(req)) {
+                axios
+                    .post('/query', {
+                        symbol: req.symbol,
+                        isCrypto: req.isCrypto,
+                        notifyAt: phoneNumber,
+                        targetValue: req.price,
+                        notifyIfBelow: req.notifyIfBelow,
+                        isCompleted: false,
+                        toCurrency: "USD"
+                    })
+                    .then((res) => {
+                        console.log('Query added!')
+                        console.log(res.data)
+                    })
+                    .catch(err => {
+                        console.error(err);
+                    });
             }
+            else {
+                alert('Faulty data!');
+                console.log('Faulty data at: ');
+                console.log(req);
+            }
+
+            // try {
+            //     const res = await axios.post('/query', {
+            //         symbol: req.symbol,
+            //         isCrypto: req.isCrypto,
+            //         notifyAt: phoneNumber,
+            //         targetValue: req.price,
+            //         notifyIfBelow: req.notifyIfBelow,
+            //         isCompleted: false,
+            //         toCurrency: "USD"
+            //     });
+            //
+            //
+            //
+            //
+            //     console.log('Query added!');
+            //     console.log(res.data);
+            //
+            //     alert('Notification(s) queued!');
+            //
+            // } catch (err) {
+            //
+            //     console.error(err);
+            //
+            // }
         });
 
 
-        // using alert() only because I like how the pop-up looks in Safari (quite ugly/basic in Firefox :( )
-        alert('Notification(s) queued!');
-
-
-        // reset/clear text fields after sending the message
+        // reset/clear text fields
 
         setPhoneNumber('');
         setRequestedAlert([defaultAlert]);
@@ -235,11 +274,21 @@ export function HomePage() {
                                 className={classes.formTextField}
                                 required
                                 value={req.price}
-                                label={'price'}
+                                label={'price in cents'}
                                 variant={'outlined'}
                                 type={'number'}
                                 onChange={(event) => handlePrice(event, index)}
                             />
+
+                            <Button
+                                onClick={() => handleRemoveAlert(index)}>
+                                -
+                            </Button>
+
+                            <Button
+                                onClick={handleAddAlert}>
+                                +
+                            </Button>
 
                         </div>
                     </Fragment>
