@@ -69,6 +69,7 @@ const useStyles = makeStyles({
     }
 });
 
+
 export function HomePage() {
 
     const classes = useStyles();
@@ -169,35 +170,10 @@ export function HomePage() {
                 console.log(req);
             }
 
-            // try {
-            //     const res = await axios.post('/query', {
-            //         symbol: req.symbol,
-            //         isCrypto: req.isCrypto,
-            //         notifyAt: phoneNumber,
-            //         targetValue: req.price,
-            //         notifyIfBelow: req.notifyIfBelow,
-            //         isCompleted: false,
-            //         toCurrency: "USD"
-            //     });
-            //
-            //
-            //
-            //
-            //     console.log('Query added!');
-            //     console.log(res.data);
-            //
-            //     alert('Notification(s) queued!');
-            //
-            // } catch (err) {
-            //
-            //     console.error(err);
-            //
-            // }
         });
 
 
         // reset/clear text fields
-
         setPhoneNumber('');
         setRequestedAlert([defaultAlert]);
 
@@ -209,7 +185,7 @@ export function HomePage() {
         <div className={classes.homePage}>
             <Typography variant={'h4'}>
 
-                Fill out this form to get custom market monitoring!
+                Fill out this form for market movement notifications!
 
             </Typography>
 
@@ -223,6 +199,7 @@ export function HomePage() {
                     required
                     value={phoneNumber}
                     label={'phone number'}
+                    helperText={' include the +1'}
                     variant={'outlined'}
                     onChange={capturePhoneNum}
                 />
@@ -239,6 +216,7 @@ export function HomePage() {
                                 required
                                 value={req.symbol}
                                 label={'symbol'}
+                                helperText={'stock/crypto to watch'}
                                 variant={'outlined'}
                                 onChange={(event) => handleSymbol(event, index)}
                             />

@@ -1,10 +1,7 @@
 
 require('dotenv').config();
 
-const express = require('express');
-const axios = require('axios');
-
-// twilio vars
+// twilio setup
 const bodyParser = require('body-parser');
 const pino = require('express-pino-logger')();
 
@@ -13,20 +10,26 @@ const client = require('twilio')(
     process.env.TWILIO_AUTH_TOKEN
 );
 
-// mongo vars
+
+// mongo setup
 const PORT = process.env.PORT || 5000;
 const path = require('path');
 const {Query} = require('./model/query');
 const mongoose = require('mongoose');
 
-// instantiate mongo
 const url = process.env.MONGO_URL || 'mongodb://localhost/market-tracker';
 mongoose.connect(url, {useNewUrlParser: true,  useFindAndModify: false });
 const connection = mongoose.connection;
 
 connection.on('error', () => console.error('connection error: '));
 connection.once('open', () => console.log('connection is live! '));
+
+
 // ----------------------------------------
+
+// misc express-related setup
+const express = require('express');
+const axios = require('axios');
 
 const app = express();
 app.use(express.json());
@@ -54,26 +57,6 @@ app.post('/query', async (req, res) => {
         return res.sendStatus(400);
     }
 });
-
-/*
-app.post('/api/messages', (req, res) => {
-    res.header('Content-Type', 'application/json');
-    client.messages
-        .create({
-            from: process.env.TWILIO_PHONE_NUMBER,
-            to: req.body.to,
-            body: req.body.body
-        })
-        .then(() => {
-            res.send(JSON.stringify({ success: true }));
-        })
-        .catch(err => {
-            console.log(err);
-            res.send(JSON.stringify({ success: false }));
-        });
-});
-*/
-
 
 
 app.get('/*', (req, res) => {
@@ -104,20 +87,25 @@ async function sendAlert(data, price) {
         });
 }
 
+
+// sample alphavantage get requests for stock and crypto
 //https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=IBM&apikey=demo
 // https://www.alphavantage.co/query?function=CURRENCY_EXCHANGE_RATE&from_currency=BTC&to_currency=CNY&apikey=demo
-const baseAddress = 'https://www.alphavantage.co/query?';
 
 async function loopingFunction() {
+    const baseAddress = 'https://www.alphavantage.co/query?';
+
     console.log('looping');
 
+    // get all uncompleted requests from db
     let data = await Query.find({isCompleted: false});
     console.log(data);
 
-    // check each one
+
     for (let i=0; i<data.length; i++) {
         let httpRequestAddress;
         let currentPrice;
+
 
         if (data[i].isCrypto) {
             httpRequestAddress = baseAddress + 'function=CURRENCY_EXCHANGE_RATE&from_currency=' + data[i].symbol + '&to_currency=USD&apikey=' +
@@ -140,6 +128,7 @@ async function loopingFunction() {
                 currentPrice = response.data['Global Quote']['05. price'];
             });
         }
+
 
         const currentMinusTargetPrice = currentPrice - (data[i].targetValue/100);
         if ((data[i].notifyIfBelow && currentMinusTargetPrice<0) || (!(data[i].notifyIfBelow) && currentMinusTargetPrice>=0)) {
@@ -165,11 +154,12 @@ async function loopingFunction() {
         }
 
     }
+
 }
 
 function run () {
-    setInterval(loopingFunction, 6000);
-    // setInterval(loopingFunction, 60000);
+    // set loop to run every minute (can't do too many alphavantage get requests on a free account
+    setInterval(loopingFunction, 60000);
 }
 
 
