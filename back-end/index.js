@@ -67,7 +67,7 @@ app.get('/*', (req, res) => {
 
 
 async function sendAlert(data, price) {
-    let messageBody = "Hi, market-tracker here \n";
+    let messageBody = "\nHi, market-tracker here \n";
     messageBody += data.symbol + " is " + (data.notifyIfBelow ? "below $" : "at/above $") + (data.targetValue/100) +
         " right now! ------ currently at $" + price;
 
