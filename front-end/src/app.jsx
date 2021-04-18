@@ -29,8 +29,8 @@ export default function App() {
 
                 <Switch>
 
-                    { /* If the history path matches '/', render the 'HomePage' component */ }
-                    <Route path={'/'}>
+                    { /* Always render the 'HomePage' component */ }
+                    <Route path={'*'}>
                         <HomePage/>
                     </Route>
 

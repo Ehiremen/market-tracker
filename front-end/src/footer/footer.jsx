@@ -16,7 +16,6 @@ const usesStyles = makeStyles({
         width: '100%',
         height: '3rem',
 
-        // don't know how to get the exact backgroundColor from the navigation-bar's AppBar
         backgroundColor: 'royalblue',
         color: 'white',
 

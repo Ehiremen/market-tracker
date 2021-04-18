@@ -1,44 +1,51 @@
-import Toolbar from "@material-ui/core/Toolbar";
-import Button from "@material-ui/core/Button";
-import AppBar from "@material-ui/core/AppBar";
+import makeStyles from "@material-ui/core/styles/makeStyles";
+import {Typography} from "@material-ui/core";
 import React from "react";
 
-import {useHistory} from "react-router-dom";
+const usesStyles = makeStyles({
+
+    fixedHeader: {
+
+        marginLeft: '0',
+        paddingLeft: '2rem',
+        paddingRight: '2rem',
+
+        // want my footer to always be at the bottom of the page
+        top: '0',
+        position: 'fixed',
+
+        width: '100%',
+        height: '5rem',
+
+        backgroundColor: 'royalblue',
+        color: 'white',
+
+        // flexBox
+        display: 'flex',
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'center'
+
+    }
+
+});
 
 // A React component for just the navigation bar at the top of the screen
 export function NavigationBar() {
 
-    // Get a reference to the History object React Router uses through the useHistory hook
-    const history = useHistory();
-
-
-    // Called when the user selects the 'Home' button, pushes the root ('/') location onto the history stack
-    function handleHomeNavigation() {
-
-        // React Router will be watching this object in the app.jsx page and will change the page accordingly
-        history.push('/');
-
-    }
-
-
+    const classes = usesStyles();
 
     return (
 
-        <AppBar>
+        <div className={classes.fixedHeader}>
 
-            <Toolbar>
+            <Typography variant={'h4'}>
 
-                <Button
-                    color="inherit"
-                    onClick={handleHomeNavigation}>
+                MARKET TRACKER
 
-                    Home
-                </Button>
+            </Typography>
 
-
-            </Toolbar>
-
-        </AppBar>
+        </div>
 
     )
 
