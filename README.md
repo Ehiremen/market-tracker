@@ -32,3 +32,7 @@ Also NOTE:
 
 
 # Done for and during the 2021 UofIowa Hackathon
+
+
+## backlog;
+- check queries to ensure they aren't exact duplicates before adding them to the database
