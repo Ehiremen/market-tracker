@@ -1,5 +1,5 @@
 # market-tracker
-react app that allows users request to be notified about specific changes in the price of stocks or crypto currencies.
+single-page react app that allows users request to be notified about specific changes in the price of stocks or crypto currencies.
 
 ### key details
 - doesn't allow signing into portfolios to avoid security breaches.
