@@ -38,7 +38,7 @@ export function Footer() {
         <div className={classes.fixedFooter}>
 
             <p>Copyright Ekore 2021</p>
-            <p>Reachable at: ehisekore@outlook.com</p>
+            <p>Market data checked every 180 seconds</p>
 
         </div>
 
