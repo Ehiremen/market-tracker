@@ -1,5 +1,7 @@
 
 require('dotenv').config();
+const PORT = process.env.PORT || 5000;
+const path = require('path');
 
 // twilio setup
 const bodyParser = require('body-parser');
@@ -12,13 +14,11 @@ const client = require('twilio')(
 
 
 // mongo setup
-const PORT = process.env.PORT || 5000;
-const path = require('path');
 const {Query} = require('./model/query');
 const mongoose = require('mongoose');
 
 const url = process.env.MONGO_URL || 'mongodb://localhost/market-tracker';
-mongoose.connect(url, {useNewUrlParser: true,  useFindAndModify: false, useUnifiedTopology: true });
+mongoose.connect(url, {useNewUrlParser: true,  useFindAndModify: false });
 const connection = mongoose.connection;
 
 connection.on('error', () => console.error('connection error: '));
@@ -37,7 +37,9 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use(pino);
 
+
 app.use(express.static(path.resolve(__dirname, '../front-end/build')));
+
 
 app.get('/', function (req, res){
 
