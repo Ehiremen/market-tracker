@@ -164,8 +164,8 @@ async function loopingFunction() {
 }
 
 function run () {
-    // set loop to run every minute (can't do too many alphaVantage get requests on a free account
-    const timeoutInMilliseconds = 60000; // how often should the market data be checked?
+    // set loop to run every X time (can't do too many alphaVantage get requests on a free account)
+    const timeoutInMilliseconds = 120000; // how often should the market data be checked? 1000 = 1 second
     setInterval(loopingFunction, timeoutInMilliseconds);
 }
 
