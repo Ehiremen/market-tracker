@@ -1,5 +1,5 @@
 {
-  "name": "market-tracker",
+  "name": "markettracker",
   "version": "1.0.0",
   "engines": {
     "npm": "6.14.8",
@@ -13,14 +13,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Ehiremen/market-tracker.git"
+    "url": "git+https://github.com/Ehiremen/markettracker.git"
   },
   "author": "Ehiremen Ekore",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/Ehiremen/market-tracker/issues"
+    "url": "https://github.com/Ehiremen/markettracker/issues"
   },
-  "homepage": "https://github.com/Ehiremen/market-tracker#readme",
+  "homepage": "https://github.com/Ehiremen/markettracker#readme",
   "devDependencies": {
     "axios": "^0.21.1",
     "express-pino-logger": "^6.0.0",
