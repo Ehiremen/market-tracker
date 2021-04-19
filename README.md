@@ -1,5 +1,5 @@
 # market-tracker
-single-page react app that allows users request to be notified about specific changes in the price of stocks or crypto currencies. currently set to retrieve market data every 5 minutes.
+single-page react app that allows users request to be notified about specific changes in the price of stocks or crypto currencies. currently set to retrieve market data every 3 minutes.
 
 ### key details
 - doesn't allow signing into portfolios to avoid security breaches.
