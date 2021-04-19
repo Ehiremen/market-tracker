@@ -198,7 +198,6 @@ export function HomePage() {
                     required
                     value={phoneNumber}
                     label={'phone number'}
-                    helperText={' include the +1'}
                     variant={'outlined'}
                     onChange={capturePhoneNum}
                 />
