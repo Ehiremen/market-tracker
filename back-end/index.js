@@ -75,11 +75,11 @@ app.get('/*', (req, res) => {
 
 
 async function sendAlert(data, price) {
-    let messageBody = "\nHi, market-tracker here \n";
+    let messageBody = "Hi, market-tracker here \n";
     messageBody += data.symbol + " is " + (data.notifyIfBelow ? "below $" : "at/above $") + (data.targetValue/100.00) +
         " right now! ------ currently at $" + price;
 
-    console.log(messageBody);
+    console.log('sending message: ', messageBody);
     client.messages
         .create({
             from: process.env.TWILIO_PHONE_NUMBER,
@@ -87,7 +87,7 @@ async function sendAlert(data, price) {
             body: messageBody
         })
         .then(() => {
-            console.log({success:true});
+            console.log({success: true});
         })
         .catch(err => {
             console.log(err);
@@ -103,11 +103,9 @@ async function sendAlert(data, price) {
 async function loopingFunction() {
     const baseAddress = 'https://www.alphavantage.co/query?';
 
-    console.log('looping');
-
     // get all uncompleted requests from db
     let data = await Query.find({isCompleted: false});
-    console.log(data);
+    console.log('looping for ', data.length, ' items');
 
 
     for (let i=0; i<data.length; i++) {
@@ -118,28 +116,31 @@ async function loopingFunction() {
         if (data[i].isCrypto) {
             httpRequestAddress = baseAddress + 'function=CURRENCY_EXCHANGE_RATE&from_currency=' + data[i].symbol + '&to_currency=USD&apikey=' +
                 process.env.ALPHA_VANTAGE_API_KEY;
-            console.log('query: ', httpRequestAddress);
-            console.log();
+
 
             const alphaApiData = await axios.get(httpRequestAddress).then((response) => {
                 console.log('crypto data received');
                 currentPrice = response.data['Realtime Currency Exchange Rate']['5. Exchange Rate'];
             });
         }
+
         else {
             httpRequestAddress = baseAddress + 'function=GLOBAL_QUOTE&symbol=' + data[i].symbol + '&apikey=' + process.env.ALPHA_VANTAGE_API_KEY;
-            console.log('query: ', httpRequestAddress);
-            console.log();
+
 
             const alphaApiData = await axios.get(httpRequestAddress).then((response) => {
                 console.log('stock data received');
                 currentPrice = response.data['Global Quote']['05. price'];
             });
+
         }
 
 
-        const currentMinusTargetPrice = currentPrice - (data[i].targetValue/100);
-        if ((data[i].notifyIfBelow && currentMinusTargetPrice<0) || (!(data[i].notifyIfBelow) && currentMinusTargetPrice>=0)) {
+        // const currentMinusTargetPrice = currentPrice - (data[i].targetValue/100);
+        const sendNotify = data[i].notifyIfBelow ? ((currentPrice*100)<data[i].targetValue) : ((currentPrice*100)>=data[i].targetValue);
+
+        // if ((data[i].notifyIfBelow && currentMinusTargetPrice<0) || (!(data[i].notifyIfBelow) && currentMinusTargetPrice>=0)) {
+        if (sendNotify) {
             console.log('sendingAlert');
             await sendAlert(data[i], currentPrice);
 
@@ -167,7 +168,7 @@ async function loopingFunction() {
 
 function run () {
     // set loop to run every X time (can't do too many alphaVantage get requests on a free account)
-    const timeoutInMilliseconds = 300000; // how often should the market data be checked? 1000 = 1 second
+    const timeoutInMilliseconds = 180000; // how often should the market data be checked? 1000 = 1 second
     setInterval(loopingFunction, timeoutInMilliseconds);
 }
 

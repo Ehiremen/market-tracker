@@ -126,7 +126,7 @@ export function HomePage() {
     }
 
     function validateFields(req) {
-       if (req.symbol == '' || req.price <= 0) return false;
+       if (req.symbol === '' || req.price <= 0) return false;
         return true;
     }
 
@@ -135,7 +135,7 @@ export function HomePage() {
 
         console.log(phoneNumber);
 
-        if ( phoneNumber == '' || phoneNumber.length < 10 ) {
+        if ( phoneNumber === '' || phoneNumber.length < 10 ) {
             alert('Invalid phone number');
             return;
         }
@@ -165,8 +165,7 @@ export function HomePage() {
             }
             else {
                 alert('Faulty data!');
-                console.log('Faulty data at: ');
-                console.log(req);
+                console.log('Faulty data at: ', req);
             }
 
         });
