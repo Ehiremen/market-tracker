@@ -162,6 +162,8 @@ export function HomePage() {
                     .catch(err => {
                         console.error(err);
                     });
+
+                alert('notification(s) queued!');
             }
             else {
                 alert('Faulty data!');
