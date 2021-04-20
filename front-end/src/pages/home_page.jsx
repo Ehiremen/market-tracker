@@ -272,13 +272,19 @@ export function HomePage() {
                     )
                 )}
             </div>
-
+            <div>
+                <Typography variant={'h3'}>
+                    SITE DOWN FOR MAINTENANCE UNTIL 4/21
+                </Typography>
+            </div>
+            {/*
             <Button
                 className={classes.submitButton}
                 onClick={handleSubmitButton}>
 
                 Notify Me!
             </Button>
+            */}
 
         </div>
     )

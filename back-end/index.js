@@ -18,7 +18,7 @@ const {Query} = require('./model/query');
 const mongoose = require('mongoose');
 
 const url = process.env.MONGO_URL || 'mongodb://localhost/market-tracker';
-mongoose.connect(url, {useNewUrlParser: true,  useFindAndModify: false });
+mongoose.connect(url, {useNewUrlParser: true,  useFindAndModify: false, useUnifiedTopology: true });
 const connection = mongoose.connection;
 
 connection.on('error', () => console.error('connection error: '));
@@ -135,6 +135,8 @@ async function loopingFunction() {
 
         }
 
+        if (typeof currentPrice == 'undefined') continue;
+
 
         // const currentMinusTargetPrice = currentPrice - (data[i].targetValue/100);
         const sendNotify = data[i].notifyIfBelow ? ((currentPrice*100)<data[i].targetValue) : ((currentPrice*100)>=data[i].targetValue);
@@ -168,7 +170,7 @@ async function loopingFunction() {
 
 function run () {
     // set loop to run every X time (can't do too many alphaVantage get requests on a free account)
-    const timeoutInMilliseconds = 180000; // how often should the market data be checked? 1000 = 1 second
+    const timeoutInMilliseconds = 120000; // how often should the market data be checked? 1000 = 1 second
     setInterval(loopingFunction, timeoutInMilliseconds);
 }
 
