@@ -205,3 +205,10 @@ function run () {
 app.listen(PORT, () => console.log('Server is up'));
 
 run();
+
+
+setInterval(async function() {
+    const alphaApiData = await axios.get("https://markettracker.herokuapp.com").then((response) => {
+        console.log('keeping app awake');
+    });
+}, 1200000); // every 20 minutes 1200000
