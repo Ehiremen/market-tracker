@@ -15,6 +15,7 @@ const client = require('twilio')(
 
 // mongo setup
 const {Query} = require('./model/query');
+const {Watchlist} = require('./model/watchlist');
 const mongoose = require('mongoose');
 
 const url = process.env.MONGO_URL || 'mongodb://localhost/market-tracker';
@@ -58,6 +59,12 @@ app.post('/query', async (req, res) => {
     const { symbol, isCrypto, notifyAt, targetValue, notifyIfBelow, isCompleted, toCurrency } = req.body;
 
     try {
+        await Watchlist.create( {symbol, isCrypto, price: 0, priceCurrency: 'USD'});
+    } catch (error) {
+        console.log('some error adding security ', symbol, ' to watchlist');
+    }
+
+    try {
         const query = await Query.create( {symbol, isCrypto, notifyAt, targetValue, notifyIfBelow, isCompleted, toCurrency});
         return res.send(query);
     } catch (error) {
@@ -95,51 +102,80 @@ async function sendAlert(data, price) {
         });
 }
 
+// sample alphavantage get requests for stock and crypto
+//https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=IBM&apikey=demo
+// https://www.alphavantage.co/query?function=CURRENCY_EXCHANGE_RATE&from_currency=BTC&to_currency=CNY&apikey=demo
+
+async function getMarketData() {
+    let securities = await Watchlist.find({});
+    console.log('getting market data for ', securities.length, ' items');
+
+    const baseAddress = 'https://www.alphavantage.co/query?';
+
+    for (let i=0; i<securities.length; i++) {
+        let httpRequestAddress;
+        let currentPrice;
+
+
+        if (securities[i].isCrypto) {
+            httpRequestAddress = baseAddress + 'function=CURRENCY_EXCHANGE_RATE&from_currency=' + securities[i].symbol + '&to_currency=USD&apikey=' +
+                process.env.ALPHA_VANTAGE_API_KEY;
+
+            try {
+                const alphaApiData = await axios.get(httpRequestAddress).then((response) => {
+                    console.log('crypto data received');
+                    currentPrice = response.data['Realtime Currency Exchange Rate']['5. Exchange Rate'];
+                });
+            } catch (error) {
+                console.log('error getting crypto price');
+            }
+
+        } else {
+            httpRequestAddress = baseAddress + 'function=GLOBAL_QUOTE&symbol=' + securities[i].symbol + '&apikey=' + process.env.ALPHA_VANTAGE_API_KEY;
+
+
+            try {
+                const alphaApiData = await axios.get(httpRequestAddress).then((response) => {
+                    console.log('stock data received');
+                    currentPrice = response.data['Global Quote']['05. price'];
+                });
+            } catch (error) {
+                console.log('error getting stock price');
+            }
+
+        }
+
+        if (typeof currentPrice == 'undefined') {
+            console.log('unable to get price for ', securities[i].symbol);
+            continue;
+        }
+        securities[i].price = currentPrice * 100; // keep it in cents
+
+    }
+
+    return securities;
+
+}
 
 // sample alphavantage get requests for stock and crypto
 //https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=IBM&apikey=demo
 // https://www.alphavantage.co/query?function=CURRENCY_EXCHANGE_RATE&from_currency=BTC&to_currency=CNY&apikey=demo
 
 async function loopingFunction() {
-    const baseAddress = 'https://www.alphavantage.co/query?';
-
     // get all uncompleted requests from db
-    let data = await Query.find({isCompleted: false});
-    console.log('looping for ', data.length, ' items');
+    const data = await Query.find({isCompleted: false});
+
+    const securities = await getMarketData();
+    // console.log(securities);
+    // const currentPrice = securities.find(item => item.symbol === data[0].symbol);
+    // console.log('find results: ', currentPrice.price);
 
 
     for (let i=0; i<data.length; i++) {
-        let httpRequestAddress;
-        let currentPrice;
-
-
-        if (data[i].isCrypto) {
-            httpRequestAddress = baseAddress + 'function=CURRENCY_EXCHANGE_RATE&from_currency=' + data[i].symbol + '&to_currency=USD&apikey=' +
-                process.env.ALPHA_VANTAGE_API_KEY;
-
-
-            const alphaApiData = await axios.get(httpRequestAddress).then((response) => {
-                console.log('crypto data received');
-                currentPrice = response.data['Realtime Currency Exchange Rate']['5. Exchange Rate'];
-            });
-        }
-
-        else {
-            httpRequestAddress = baseAddress + 'function=GLOBAL_QUOTE&symbol=' + data[i].symbol + '&apikey=' + process.env.ALPHA_VANTAGE_API_KEY;
-
-
-            const alphaApiData = await axios.get(httpRequestAddress).then((response) => {
-                console.log('stock data received');
-                currentPrice = response.data['Global Quote']['05. price'];
-            });
-
-        }
-
-        if (typeof currentPrice == 'undefined') continue;
-
+        const currentPrice = securities.find(item => item.symbol === data[i].symbol).price;
 
         // const currentMinusTargetPrice = currentPrice - (data[i].targetValue/100);
-        const sendNotify = data[i].notifyIfBelow ? ((currentPrice*100)<data[i].targetValue) : ((currentPrice*100)>=data[i].targetValue);
+        const sendNotify = data[i].notifyIfBelow ? (currentPrice<data[i].targetValue) : (currentPrice>=data[i].targetValue);
 
         // if ((data[i].notifyIfBelow && currentMinusTargetPrice<0) || (!(data[i].notifyIfBelow) && currentMinusTargetPrice>=0)) {
         if (sendNotify) {
@@ -153,15 +189,6 @@ async function loopingFunction() {
             await Query.deleteOne(data[i]);
             await Query.create(updatedData);
 
-
-            // await Query.updateOne(data[i], {$set: {'isCompleted': true}}, function(err, res) {
-            //    if (err) {
-            //        console.log('unable to update data for: ', data[i]);
-            //    }
-            //    else {
-            //        console.log('records updated');
-            //    }
-            // });
         }
 
     }
@@ -170,7 +197,7 @@ async function loopingFunction() {
 
 function run () {
     // set loop to run every X time (can't do too many alphaVantage get requests on a free account)
-    const timeoutInMilliseconds = 120000; // how often should the market data be checked? 1000 = 1 second
+    const timeoutInMilliseconds = 30000; // how often should the market data be checked? 1000 = 1 second
     setInterval(loopingFunction, timeoutInMilliseconds);
 }
 

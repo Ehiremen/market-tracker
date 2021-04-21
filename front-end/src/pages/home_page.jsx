@@ -57,6 +57,7 @@ const useStyles = makeStyles({
 
     queryFlexRow: {
         display: 'flex',
+        flexWrap: 'wrap',
         flexDirection: 'row',
         justifyContent: 'flexStart',
         alignItems: 'center'
@@ -142,6 +143,8 @@ export function HomePage() {
 
         console.log(requestedAlerts);
 
+        const numRequested = requestedAlerts.length;
+        let numSuccesses = 0;
         // async/await version
         requestedAlerts.map( (req) => {
             if (validateFields(req)) {
@@ -163,7 +166,7 @@ export function HomePage() {
                         console.error(err);
                     });
 
-                alert('notification(s) queued!');
+                numSuccesses++;
             }
             else {
                 alert('Faulty data!');
@@ -176,6 +179,8 @@ export function HomePage() {
         // reset/clear text fields
         setPhoneNumber('');
         setRequestedAlert([defaultAlert]);
+
+        alert(numSuccesses + ' out of ' + numRequested + 'alert(s) queued!');
 
 
     }
@@ -272,19 +277,19 @@ export function HomePage() {
                     )
                 )}
             </div>
+
             <div>
-                <Typography variant={'h3'}>
-                    SITE DOWN FOR MAINTENANCE UNTIL 4/21
-                </Typography>
+                {/*<Typography variant={'h3'}>*/}
+                {/*    SITE DOWN FOR MAINTENANCE UNTIL 4/21*/}
+                {/*</Typography>*/}
             </div>
-            {/*
+
             <Button
                 className={classes.submitButton}
                 onClick={handleSubmitButton}>
 
                 Notify Me!
             </Button>
-            */}
 
         </div>
     )
