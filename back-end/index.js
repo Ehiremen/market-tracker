@@ -147,6 +147,7 @@ async function getMarketData() {
 
         if (typeof currentPrice == 'undefined') {
             console.log('unable to get price for ', securities[i].symbol);
+            securities[i].price = 0;
             continue;
         }
         securities[i].price = currentPrice * 100; // keep it in cents
@@ -178,9 +179,9 @@ async function loopingFunction() {
         const sendNotify = data[i].notifyIfBelow ? (currentPrice<data[i].targetValue) : (currentPrice>=data[i].targetValue);
 
         // if ((data[i].notifyIfBelow && currentMinusTargetPrice<0) || (!(data[i].notifyIfBelow) && currentMinusTargetPrice>=0)) {
-        if (sendNotify) {
+        if (sendNotify && (currentPrice > 0)) {
             console.log('sendingAlert');
-            await sendAlert(data[i], currentPrice/100);
+            await sendAlert(data[i], currentPrice/100.00);
 
             const updatedData = data[i];
             updatedData.isCompleted = true;
