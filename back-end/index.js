@@ -180,7 +180,7 @@ async function loopingFunction() {
         // if ((data[i].notifyIfBelow && currentMinusTargetPrice<0) || (!(data[i].notifyIfBelow) && currentMinusTargetPrice>=0)) {
         if (sendNotify) {
             console.log('sendingAlert');
-            await sendAlert(data[i], currentPrice);
+            await sendAlert(data[i], currentPrice/100);
 
             const updatedData = data[i];
             updatedData.isCompleted = true;
