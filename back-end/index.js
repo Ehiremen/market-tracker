@@ -150,7 +150,7 @@ async function getMarketData() {
             securities[i].price = 0;
             continue;
         }
-        securities[i].price = currentPrice * 100; // keep it in cents
+        securities[i].price = currentPrice; // price in dollars
 
     }
 
@@ -174,14 +174,15 @@ async function loopingFunction() {
 
     for (let i=0; i<data.length; i++) {
         const currentPrice = securities.find(item => item.symbol === data[i].symbol).price;
+        const priceInCents = currentPrice * 100;
 
         // const currentMinusTargetPrice = currentPrice - (data[i].targetValue/100);
-        const sendNotify = data[i].notifyIfBelow ? (currentPrice<data[i].targetValue) : (currentPrice>=data[i].targetValue);
+        const sendNotify = data[i].notifyIfBelow ? (priceInCents<data[i].targetValue) : (priceInCents>=data[i].targetValue);
 
         // if ((data[i].notifyIfBelow && currentMinusTargetPrice<0) || (!(data[i].notifyIfBelow) && currentMinusTargetPrice>=0)) {
         if (sendNotify && (currentPrice > 0)) {
             console.log('sendingAlert');
-            await sendAlert(data[i], currentPrice/100.00);
+            await sendAlert(data[i], currentPrice);
 
             const updatedData = data[i];
             updatedData.isCompleted = true;
