@@ -123,11 +123,12 @@ async function getMarketData() {
 
             try {
                 const alphaApiData = await axios.get(httpRequestAddress).then((response) => {
-                    console.log('crypto data received');
                     currentPrice = response.data['Realtime Currency Exchange Rate']['5. Exchange Rate'];
+                    console.log('crypto data received', currentPrice);
                 });
             } catch (error) {
                 console.log('error getting crypto price');
+                currentPrice = -1;
             }
 
         } else {
@@ -136,18 +137,19 @@ async function getMarketData() {
 
             try {
                 const alphaApiData = await axios.get(httpRequestAddress).then((response) => {
-                    console.log('stock data received');
                     currentPrice = response.data['Global Quote']['05. price'];
+                    console.log('stock data received');
                 });
             } catch (error) {
                 console.log('error getting stock price');
+                currentPrice = -1;
             }
 
         }
 
-        if (typeof currentPrice == 'undefined') {
+        if (currentPrice == -1) {
             console.log('unable to get price for ', securities[i].symbol);
-            securities[i].price = 0;
+            securities[i].price = -1;
             continue;
         }
         securities[i].price = currentPrice; // price in dollars
@@ -174,6 +176,8 @@ async function loopingFunction() {
 
     for (let i=0; i<data.length; i++) {
         const currentPrice = securities.find(item => item.symbol === data[i].symbol).price;
+        if (currentPrice == -1) continue;
+
         const priceInCents = currentPrice * 100;
 
         // const currentMinusTargetPrice = currentPrice - (data[i].targetValue/100);
@@ -191,6 +195,9 @@ async function loopingFunction() {
             await Query.deleteOne(data[i]);
             await Query.create(updatedData);
 
+        }
+        else {
+            console.log('not sending alert for ', (data[i].notifyIfBelow ? 'below ' : 'at/over '), data[i].targetValue, 'cents to ', data[i].notifyAt);
         }
 
     }
