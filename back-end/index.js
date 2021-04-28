@@ -171,7 +171,7 @@ async function getMarketData() {
         return securities;
     } catch (error) {
         console.log('error at getMarketData()');
-        return securities;
+        return false;
     }
 
 }
@@ -183,20 +183,19 @@ async function getMarketData() {
 async function loopingFunction() {
     try {
 
-
         // get all uncompleted requests from db
         const data = await Query.find({isCompleted: false});
 
         const securities = await getMarketData();
-        // console.log(securities);
+        console.log(securities);
         // const currentPrice = securities.find(item => item.symbol === data[0].symbol);
         // console.log('find results: ', currentPrice.price);
 
-        if (typeof securities == "undefined") return;
+        if (securities === false) return;
 
         for (let i = 0; i < data.length; i++) {
             const currentPrice = securities.find(item => item.symbol === data[i].symbol).price;
-            if (currentPrice == -1) continue;
+            if (currentPrice === -1) continue;
 
             const priceInCents = currentPrice * 100;
 
