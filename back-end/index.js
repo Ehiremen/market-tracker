@@ -19,7 +19,14 @@ const {Watchlist} = require('./model/watchlist');
 const mongoose = require('mongoose');
 
 const url = process.env.MONGO_URL || 'mongodb://localhost/market-tracker';
-mongoose.connect(url, {useNewUrlParser: true,  useFindAndModify: false, useUnifiedTopology: true });
+mongoose.connect(url, {useNewUrlParser: true,  useFindAndModify: false, useUnifiedTopology: true })
+    .then(() => {
+    console.log('mongoose connection established');
+    })
+    .catch(err => {
+        console.log(err);
+    });
+
 const connection = mongoose.connection;
 
 connection.on('error', () => console.error('connection error: '));
@@ -107,56 +114,63 @@ async function sendAlert(data, price) {
 // https://www.alphavantage.co/query?function=CURRENCY_EXCHANGE_RATE&from_currency=BTC&to_currency=CNY&apikey=demo
 
 async function getMarketData() {
-    let securities = await Watchlist.find({});
-    console.log('getting market data for ', securities.length, ' items');
+    let securities;
 
-    const baseAddress = 'https://www.alphavantage.co/query?';
+    try {
+        securities = await Watchlist.find({});
+        console.log('getting market data for ', securities.length, ' items');
 
-    for (let i=0; i<securities.length; i++) {
-        let httpRequestAddress;
-        let currentPrice;
+        const baseAddress = 'https://www.alphavantage.co/query?';
+
+        for (let i = 0; i < securities.length; i++) {
+            let httpRequestAddress;
+            let currentPrice;
 
 
-        if (securities[i].isCrypto) {
-            httpRequestAddress = baseAddress + 'function=CURRENCY_EXCHANGE_RATE&from_currency=' + securities[i].symbol + '&to_currency=USD&apikey=' +
-                process.env.ALPHA_VANTAGE_API_KEY;
+            if (securities[i].isCrypto) {
+                httpRequestAddress = baseAddress + 'function=CURRENCY_EXCHANGE_RATE&from_currency=' + securities[i].symbol + '&to_currency=USD&apikey=' +
+                    process.env.ALPHA_VANTAGE_API_KEY;
 
-            try {
-                const alphaApiData = await axios.get(httpRequestAddress).then((response) => {
-                    currentPrice = response.data['Realtime Currency Exchange Rate']['5. Exchange Rate'];
-                    console.log('crypto data received', currentPrice);
-                });
-            } catch (error) {
-                console.log('error getting crypto price');
-                currentPrice = -1;
+                try {
+                    const alphaApiData = await axios.get(httpRequestAddress).then((response) => {
+                        currentPrice = response.data['Realtime Currency Exchange Rate']['5. Exchange Rate'];
+                        console.log('crypto data received', currentPrice);
+                    });
+                } catch (error) {
+                    console.log('error getting crypto price');
+                    currentPrice = -1;
+                }
+
+            } else {
+                httpRequestAddress = baseAddress + 'function=GLOBAL_QUOTE&symbol=' + securities[i].symbol + '&apikey=' + process.env.ALPHA_VANTAGE_API_KEY;
+
+
+                try {
+                    const alphaApiData = await axios.get(httpRequestAddress).then((response) => {
+                        currentPrice = response.data['Global Quote']['05. price'];
+                        console.log('stock data received');
+                    });
+                } catch (error) {
+                    console.log('error getting stock price');
+                    currentPrice = -1;
+                }
+
             }
 
-        } else {
-            httpRequestAddress = baseAddress + 'function=GLOBAL_QUOTE&symbol=' + securities[i].symbol + '&apikey=' + process.env.ALPHA_VANTAGE_API_KEY;
-
-
-            try {
-                const alphaApiData = await axios.get(httpRequestAddress).then((response) => {
-                    currentPrice = response.data['Global Quote']['05. price'];
-                    console.log('stock data received');
-                });
-            } catch (error) {
-                console.log('error getting stock price');
-                currentPrice = -1;
+            if (currentPrice == -1) {
+                console.log('unable to get price for ', securities[i].symbol);
+                securities[i].price = -1;
+                continue;
             }
+            securities[i].price = currentPrice; // price in dollars
 
         }
 
-        if (currentPrice == -1) {
-            console.log('unable to get price for ', securities[i].symbol);
-            securities[i].price = -1;
-            continue;
-        }
-        securities[i].price = currentPrice; // price in dollars
-
+        return securities;
+    } catch (error) {
+        console.log('error at getMarketData()');
+        return securities;
     }
-
-    return securities;
 
 }
 
@@ -165,41 +179,53 @@ async function getMarketData() {
 // https://www.alphavantage.co/query?function=CURRENCY_EXCHANGE_RATE&from_currency=BTC&to_currency=CNY&apikey=demo
 
 async function loopingFunction() {
-    // get all uncompleted requests from db
-    const data = await Query.find({isCompleted: false});
-
-    const securities = await getMarketData();
-    // console.log(securities);
-    // const currentPrice = securities.find(item => item.symbol === data[0].symbol);
-    // console.log('find results: ', currentPrice.price);
+    try {
 
 
-    for (let i=0; i<data.length; i++) {
-        const currentPrice = securities.find(item => item.symbol === data[i].symbol).price;
-        if (currentPrice == -1) continue;
+        // get all uncompleted requests from db
+        const data = await Query.find({isCompleted: false});
 
-        const priceInCents = currentPrice * 100;
+        const securities = await getMarketData();
+        // console.log(securities);
+        // const currentPrice = securities.find(item => item.symbol === data[0].symbol);
+        // console.log('find results: ', currentPrice.price);
 
-        // const currentMinusTargetPrice = currentPrice - (data[i].targetValue/100);
-        const sendNotify = data[i].notifyIfBelow ? (priceInCents<data[i].targetValue) : (priceInCents>=data[i].targetValue);
+        if (typeof securities == "undefined") return;
 
-        // if ((data[i].notifyIfBelow && currentMinusTargetPrice<0) || (!(data[i].notifyIfBelow) && currentMinusTargetPrice>=0)) {
-        if (sendNotify && (currentPrice > 0)) {
-            console.log('sendingAlert');
-            await sendAlert(data[i], currentPrice);
+        for (let i = 0; i < data.length; i++) {
+            const currentPrice = securities.find(item => item.symbol === data[i].symbol).price;
+            if (currentPrice == -1) continue;
 
-            const updatedData = data[i];
-            updatedData.isCompleted = true;
+            const priceInCents = currentPrice * 100;
 
-            // using delete + create because updateOne is bugging out
-            await Query.deleteOne(data[i]);
-            await Query.create(updatedData);
+            // const currentMinusTargetPrice = currentPrice - (data[i].targetValue/100);
+            const sendNotify = data[i].notifyIfBelow ? (priceInCents < data[i].targetValue) : (priceInCents >= data[i].targetValue);
+
+            // if ((data[i].notifyIfBelow && currentMinusTargetPrice<0) || (!(data[i].notifyIfBelow) && currentMinusTargetPrice>=0)) {
+            if (sendNotify && (currentPrice > 0)) {
+                try {
+
+                    console.log('sendingAlert');
+                    await sendAlert(data[i], currentPrice);
+
+                    const updatedData = data[i];
+                    updatedData.isCompleted = true;
+
+                    // using delete + create because updateOne is bugging out
+                    await Query.deleteOne(data[i]);
+                    await Query.create(updatedData);
+
+                } catch (error) {
+                    console.log('failed to send alert');
+                }
+
+            } else {
+                console.log('not sending alert for ', (data[i].notifyIfBelow ? 'below ' : 'at/over '), data[i].targetValue, 'cents to ', data[i].notifyAt);
+            }
 
         }
-        else {
-            console.log('not sending alert for ', (data[i].notifyIfBelow ? 'below ' : 'at/over '), data[i].targetValue, 'cents to ', data[i].notifyAt);
-        }
-
+    } catch (error) {
+        console.log('error at loopingFunction()');
     }
 
 }
@@ -217,7 +243,13 @@ run();
 
 
 setInterval(async function() {
-    const alphaApiData = await axios.get("https://markettracker.herokuapp.com").then((response) => {
-        console.log('keeping app awake');
-    });
+    try {
+
+        const alphaApiData = await axios.get("https://markettracker.herokuapp.com").then((response) => {
+            console.log('keeping app awake');
+        });
+
+    }  catch (error) {
+        console.log('error at setInterval()');
+    }
 }, 1200000); // every 20 minutes 1200000
