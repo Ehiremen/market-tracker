@@ -162,7 +162,9 @@ async function getMarketData() {
                 securities[i].price = -1;
                 continue;
             }
-            securities[i].price = currentPrice; // price in dollars
+            else {
+                securities[i].price = currentPrice; // price in dollars
+            }
 
         }
 
@@ -225,7 +227,7 @@ async function loopingFunction() {
 
         }
     } catch (error) {
-        console.log('error at loopingFunction()');
+        console.log('error at loopingFunction():', error);
     }
 
 }
