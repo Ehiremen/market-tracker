@@ -195,7 +195,10 @@ async function loopingFunction() {
         for (let i = 0; i < data.length; i++) {
             let currentPrice, relevantItem;
             try {
-                relevantItem = securities.find(item => item['symbol'] === data[i].symbol);
+                relevantItem = securities.find(item => {
+                    console.log('quotes: ', item['symbol'], ' dot: ', item.symbol);
+                    return item.symbol == data[i].symbol
+                });
                 currentPrice = relevantItem['price'];
             } catch (e) {
                 console.log('skipping faulty price check for: ', securities, '\nitem: ', data[i].symbol);
