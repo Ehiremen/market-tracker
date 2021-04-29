@@ -193,11 +193,13 @@ async function loopingFunction() {
         if (securities === false) return;
 
         for (let i = 0; i < data.length; i++) {
-            let currentPrice;
+            let currentPrice, relevantItem;
             try {
-                currentPrice = securities.find(item => item.symbol === data[i].symbol).price;
+                relevantItem = securities.find(item => item.symbol === data[i].symbol);
+                currentPrice = relevantItem['price'];
             } catch (e) {
                 console.log('skipping faulty price check for: ', securities, '\nitem: ', data[i].symbol);
+                console.log('got: ', relevantItem);
                 console.log('current price btw: ', currentPrice);
                 continue;
             }
