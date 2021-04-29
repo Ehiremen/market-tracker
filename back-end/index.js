@@ -194,7 +194,13 @@ async function loopingFunction() {
         if (securities === false) return;
 
         for (let i = 0; i < data.length; i++) {
-            const currentPrice = securities.find(item => item.symbol === data[i].symbol).price;
+            let currentPrice;
+            try {
+                currentPrice = securities.find(item => item.symbol === data[i].symbol).price;
+            } catch (e) {
+                console.log('skipping faulty price check for: ', securities, '\nitem: ', data[i].symbol);
+                continue;
+            }
             if (currentPrice === -1) continue;
 
             const priceInCents = currentPrice * 100;
