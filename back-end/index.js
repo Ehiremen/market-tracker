@@ -160,7 +160,6 @@ async function getMarketData() {
             if (currentPrice == -1) {
                 console.log('unable to get price for ', securities[i].symbol);
                 securities[i].price = -1;
-                continue;
             }
             else {
                 securities[i].price = currentPrice; // price in dollars
@@ -199,6 +198,7 @@ async function loopingFunction() {
                 currentPrice = securities.find(item => item.symbol === data[i].symbol).price;
             } catch (e) {
                 console.log('skipping faulty price check for: ', securities, '\nitem: ', data[i].symbol);
+                console.log('current price btw: ', currentPrice);
                 continue;
             }
             if (currentPrice === -1) continue;
