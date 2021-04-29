@@ -186,7 +186,7 @@ async function loopingFunction() {
         const data = await Query.find({isCompleted: false});
 
         const securities = await getMarketData();
-        console.log(securities);
+        // console.log(securities);
         // const currentPrice = securities.find(item => item.symbol === data[0].symbol);
         // console.log('find results: ', currentPrice.price);
 
@@ -196,17 +196,17 @@ async function loopingFunction() {
             let currentPrice, relevantItem;
             try {
                 relevantItem = securities.find(item => {
-                    console.log('quotes: ', item['symbol'], ' dot: ', item.symbol, 'data: ', data[i].symbol);
-                    console.log('relevant item: ', relevantItem);
-                    return item.symbol == data[i].symbol
+                    // console.log('quotes: ', item['symbol'], ' dot: ', item.symbol, 'data: ', data[i].symbol);
+                    return item.symbol === data[i].symbol
                 });
-                currentPrice = relevantItem['price'];
+                currentPrice = relevantItem.price;
             } catch (e) {
-                console.log('skipping faulty price check for: ', securities, '\nitem: ', data[i].symbol);
-                console.log('got: ', relevantItem);
-                console.log('current price btw: ', currentPrice);
+                console.log('skipping faulty price check for: ', data[i].symbol, 'in:\n', securities);
+                // console.log('got: ', relevantItem);
+                // console.log('current price btw: ', currentPrice);
                 continue;
             }
+
             if (currentPrice === -1) continue;
 
             const priceInCents = currentPrice * 100;
