@@ -196,7 +196,8 @@ async function loopingFunction() {
             let currentPrice, relevantItem;
             try {
                 relevantItem = securities.find(item => {
-                    console.log('quotes: ', item['symbol'], ' dot: ', item.symbol);
+                    console.log('quotes: ', item['symbol'], ' dot: ', item.symbol, 'data: ', data[i].symbol);
+                    console.log('relevant item: ', relevantItem);
                     return item.symbol == data[i].symbol
                 });
                 currentPrice = relevantItem['price'];
