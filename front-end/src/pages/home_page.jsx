@@ -180,7 +180,7 @@ export function HomePage() {
         setPhoneNumber('');
         setRequestedAlert([defaultAlert]);
 
-        alert(numSuccesses + ' out of ' + numRequested + 'alert(s) queued!');
+        alert(numSuccesses + ' out of ' + numRequested + ' alert(s) queued!');
 
 
     }
