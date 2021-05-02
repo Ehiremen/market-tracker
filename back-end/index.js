@@ -19,7 +19,7 @@ const {Watchlist} = require('./model/watchlist');
 const mongoose = require('mongoose');
 
 const url = process.env.MONGO_URL || 'mongodb://localhost/market-tracker';
-mongoose.connect(url, {useNewUrlParser: true,  useFindAndModify: false, useUnifiedTopology: true })
+mongoose.connect(url, {useNewUrlParser: true,  useFindAndModify: false, useUnifiedTopology: true, useCreateIndex: true })
     .then(() => {
     console.log('mongoose connection established');
     })
@@ -50,12 +50,6 @@ app.use(express.static(path.resolve(__dirname, '../front-end/build')));
 
 
 app.get('/', function (req, res){
-
-    // show db records. used in dev, not practical in live app
-
-    // Query.find({}, function(err, queries) {
-        // res.json(queries);
-    // });
 
     res.sendFile(path.resolve(__dirname, '../front-end/build', 'index.html'));
 
@@ -132,7 +126,7 @@ async function getMarketData() {
                     process.env.ALPHA_VANTAGE_API_KEY;
 
                 try {
-                    const alphaApiData = await axios.get(httpRequestAddress).then((response) => {
+                    await axios.get(httpRequestAddress).then((response) => {
                         currentPrice = response.data['Realtime Currency Exchange Rate']['5. Exchange Rate'];
                         console.log('crypto data received', currentPrice);
                     });
@@ -146,7 +140,7 @@ async function getMarketData() {
 
 
                 try {
-                    const alphaApiData = await axios.get(httpRequestAddress).then((response) => {
+                    await axios.get(httpRequestAddress).then((response) => {
                         currentPrice = response.data['Global Quote']['05. price'];
                         console.log('stock data received');
                     });
@@ -177,7 +171,7 @@ async function getMarketData() {
 
 // sample alphavantage get requests for stock and crypto
 //https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=IBM&apikey=demo
-// https://www.alphavantage.co/query?function=CURRENCY_EXCHANGE_RATE&from_currency=BTC&to_currency=CNY&apikey=demo
+// https://www.alphavantage.co/query?function=CURRENCY_EXCHANGE_RATE&from_currency=DOGE&to_currency=CNY&apikey=demo
 
 async function loopingFunction() {
     try {
