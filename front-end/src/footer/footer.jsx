@@ -38,7 +38,7 @@ export function Footer() {
         <div className={classes.fixedFooter}>
 
             <p>Copyright Ekore 2021</p>
-            <p>Market data checked every 30 seconds</p>
+            <p>Market data checked every 173 seconds</p>
 
         </div>
 

@@ -238,8 +238,8 @@ async function loopingFunction() {
 }
 
 function run () {
-    // set loop to run every X time (can't do too many alphaVantage get requests on a free account)
-    const timeoutInMilliseconds = 30000; // how often should the market data be checked? 1000 = 1 second
+    // set loop to run every X time (can do 500 daily alphaVantage get requests on a free account)
+    const timeoutInMilliseconds = 172800; // how often should the market data be checked? 1000 = 1 second
     setInterval(loopingFunction, timeoutInMilliseconds);
 }
 
@@ -252,7 +252,7 @@ run();
 setInterval(async function() {
     try {
 
-        const alphaApiData = await axios.get("https://markettracker.herokuapp.com").then((response) => {
+        await axios.get("https://markettracker.herokuapp.com").then((response) => {
             console.log('keeping app awake');
         });
 
